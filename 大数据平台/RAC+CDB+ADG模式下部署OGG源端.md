@@ -386,6 +386,7 @@ add trandata hexindb.ens_cbank.cif_document_read
 add trandata hexindb.ens_cbank.lm_limit_cumulative
 add trandata hexindb.ens_cbank.lm_tran_limit_def
 add trandata hexindb.ens_cbank.stria_flow
+add trandata hexindb.ens_cbank.mb_sxc_tran_hist
 add trandata guimiandb.teller.sso_rolebasic
 add trandata guimiandb.teller.sso_userrole
 add trandata guimiandb.teller.sso_roleaccessresource
@@ -548,6 +549,7 @@ table hexindb.ens_cbank.cif_document_read;
 table hexindb.ens_cbank.lm_limit_cumulative;
 table hexindb.ens_cbank.lm_tran_limit_def;
 table hexindb.ens_cbank.stria_flow;
+table hexindb.ens_cbank.mb_sxc_tran_hist;
 
 
 # 生成表结构
@@ -765,6 +767,7 @@ table hexindb.ens_cbank.cif_document_read;
 table hexindb.ens_cbank.lm_limit_cumulative;
 table hexindb.ens_cbank.lm_tran_limit_def;
 table hexindb.ens_cbank.stria_flow;
+table hexindb.ens_cbank.mb_sxc_tran_hist;
 
 
 # 第二部分：柜面库guimiandb
@@ -1025,6 +1028,7 @@ MAP hexindb.ens_cbank.cif_document_read; TARGET ens_cbank.cif_document_read;
 MAP hexindb.ens_cbank.lm_limit_cumulative; TARGET ens_cbank.lm_limit_cumulative;
 MAP hexindb.ens_cbank.lm_tran_limit_def; TARGET ens_cbank.lm_tran_limit_def;
 MAP hexindb.ens_cbank.stria_flow; TARGET ens_cbank.stria_flow;
+MAP hexindb.ens_cbank.mb_sxc_tran_hist; TARGET ens_cbank.mb_sxc_tran_hist;
 
 
 # 第二部分：柜面库guimiandb
