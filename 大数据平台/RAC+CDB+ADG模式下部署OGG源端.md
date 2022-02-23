@@ -55,6 +55,9 @@ YES
 ## 1.3 开启pdb日志
 
 ```sql
+-- 查看所有pdb
+SQL> select name,open_mode from v$pdbs;
+
 -- hexindb的pdb日志
 SQL> alter session set container=hexindb;
 
@@ -1037,7 +1040,7 @@ REPLICAT added.
 
 GGSCI (node43) 125> edit param regm
 
-replicat reens
+replicat regm
 TARGETDB LIBFILE libggjava.so SET property=dirprm/reens.props 
 SOURCEDEFS ./dirdef/ens_gm.def OVERRIDE
 REPORTCOUNT EVERY 1 MINUTES, RATE

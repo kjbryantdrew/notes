@@ -173,7 +173,7 @@ SQL>create tablespace ogg_tbs datafile '/u01/app/oracle/oradata/orcl/ogg_tbs.dbf
 -- ogg user
 SQL> create user ggadm identified by "oracle" default tablespace ogg_tbs;
 SQL> ALTER USER   GGADM QUOTA UNLIMITED ON  OGG_TBS;
-SQL> grant connect, resource,CREATE SESSION to ggadm;
+SQL> grant dba,connect,resource,CREATE SESSION to ggadm;
 -- 值得注意的是，需要ddl时开启DBA权限
 SQL> exec dbms_goldengate_auth.grant_admin_privilege('ggadm');
 SQL> exec dbms_goldengate_auth.grant_admin_privilege(grantee=>'ggadm');
@@ -256,7 +256,6 @@ START_MANAGER=false
 ```shell
 [ogg@kdb01 response]$ mkdir /home/ogg/ogg
 [ogg@kdb01 response]$ cd /home/ogg/fbo_ggs_Linux_x64_shiphome/Disk1/
-[ogg@kdb01 Disk1]$ ./runInstaller -silent -responseFile /home/ogg/fbo_ggs_Linux_x64_shiphome/Disk1/response/oggcore.rsp
  
 [ogg@kdb01 response]$ cd /home/ogg/fbo_ggs_Linux_x64_shiphome/Disk1/
 [ogg@kdb01 Disk1]$ ./runInstaller -silent -responseFile /home/ogg/fbo_ggs_Linux_x64_shiphome/Disk1/response/oggcore.rsp
