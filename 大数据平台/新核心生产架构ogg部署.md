@@ -1083,14 +1083,14 @@ EXTRACT     RUNNING     PPHX        00:00:00      00:00:00
 
 
 
-# 9. ogg目标端
+# 6. ogg目标端
 
-## 9.1 kafka
+## 6.1 kafka
 
 1. 增加topic
 2. 创建consumer并注册topic
 
-## 9.2 replicat配置
+## 6.2 replicat配置
 
 ```bash
 # 核心交易库部分
@@ -1273,7 +1273,7 @@ MAP tellerdb.teller9.tl9_business_journala, TARGET ens_cbank.tl9_business_journa
 MAP tellerdb.teller9.tl9_unprint_tran, TARGET ens_cbank.tl9_unprint_tran;
 ```
 
-## 9.3 ogg kafka配置文件
+## 6.3 ogg kafka配置文件
 
 ```bash
 [ogg12@node43 dirprm]$ vim ens_pd.props
