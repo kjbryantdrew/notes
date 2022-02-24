@@ -1,4 +1,4 @@
-> 新核心UAT3环境统一采用单生产节点，UAT4环境统一采用RAC+CDB+ADG架构，而正式的生产环境将交易库和管理库（主库中有需要同步的柜面库）做了架构拆分，交易库采用单主节点+独立的adg节点的模式，管理库采用cdb+独立adg节点的模式。在该模式下，预设部署方案为：将ogg源端程序部署在交易库adg节点，同时在adg的Oracle下添加对管理库的adg节点的监听，远程抽取管理库日志。
+> 新核心UAT3环境统一采用单生产节点，UAT4环境统一采用RAC+CDB+ADG架构，而正式的生产环境将交易库和管理库（管理库中有需要同步的柜面库）做了架构拆分，交易库采用RAC+Non_CDB+ADG的模式，管理库采用RAC+CDB+ADG的模式。在双架构下，预设部署方案为：将ogg源端程序部署在交易库adg节点(因为主要同步内容在交易库)，同时在adg的Oracle下添加对管理库的adg节点的监听，远程抽取管理库日志。
 
 # 1. 源交易库
 
@@ -554,8 +554,6 @@ table ens_cbank.mb_sxc_tran_hist;
 [ggs@core_dg ogg]$ scp dirdef/def_hx.def ogg12@160.161.12.43:~/dirdef/
 ```
 
-
-
 ## 3.6 manager配置
 
 ```bash
@@ -574,8 +572,6 @@ LAGREPORTHOURS 1
 LAGINFOMINUTES 30
 LAGCRITICALMINUTES 45
 ```
-
-
 
 ## 3.7 extract配置
 
@@ -1094,7 +1090,7 @@ EXTRACT     RUNNING     PPHX        00:00:00      00:00:00
 
 ```bash
 # 核心交易库部分
-GGSCI (node43) 1254> add replicat hx_pd, exttrail ./dirdat/hx, checkpointtable ggadm.checkpoint
+GGSCI (node43) 1254> add replicat hx_pd, exttrail ./dirdat/jy, checkpointtable ggadm.checkpoint
 REPLICAT added.
 
 GGSCI (node43) 1255> edit param hx_pd
@@ -1247,7 +1243,7 @@ MAP ens_cbank.mb_sxc_tran_hist; TARGET ens_cbank.mb_sxc_tran_hist;
 
 
 # 核心柜面库部分
-GGSCI (node43) 1270> add replicat GM_PD, exttrail ./dirdat/gm, checkpointtable hexindb.ggadm.checkpoint
+GGSCI (node43) 1270> add replicat GM_PD, exttrail ./dirdat/gm, checkpointtable tellerdb.teller.checkpoint
 REPLICAT added.
 
 
