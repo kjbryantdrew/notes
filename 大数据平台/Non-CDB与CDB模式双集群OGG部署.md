@@ -56,6 +56,8 @@ ARCHIVELOG   YES
 
 ## 1.2 添加oracle golden gate支持
 
+**oracle 添加ogg支持在主库和备库上都需要开启**
+
 ```sql
 SQL> show parameter enable_goldengate_replication;
 
@@ -241,9 +243,9 @@ GGSCI (core_dg) 1> add credentialstore
 
 Credential store created.
 
-GGSCI (core_dg) 2> alter credentialstore add user ggadm@coredb password oracle alias ogg_hx
+GGSCI (core_dg) 2> alter credentialstore add user ggadm@coredbdg password oracle alias ogg_hx
 # ggadm/oracle为1.3章节中在主库上创建的ogg用户名和密码
-# 特别注意：“@coredb”中，coredb为dg节点的Oracle监听程序中配置的对主库的监听服务名，从$ORACLE_HOME/network/admin/tnsnames.ora中获取到的
+# 特别注意：“@coredbdg”中，coredbdg为dg节点的Oracle监听程序中配置的对adg库的监听服务名，从$ORACLE_HOME/network/admin/tnsnames.ora中获取到的
 Credential store altered.
 
 GGSCI (core_dg) 3> dblogin useridalias ogg_hx
@@ -254,7 +256,8 @@ Successfully logged into database.
 
 ```shell
 # 先登录
-GGSCI (core_dg) 2> dblogin useridalias ogg_hx
+# 开启附加日志需要写入log group信息，需要登录到主库进行
+GGSCI (core_dg as ggadm@coredb) 471> dblogin userid ggadm@coredb password oracle
 Successfully logged into database.
 
 # 批量添加
@@ -575,8 +578,13 @@ LAGCRITICALMINUTES 45
 
 ## 3.7 extract配置
 
+> 比起传统模式，ogg12.1.2.1.0后支持adg上extract
+>
+> Does GoldenGate support extract reading redo from generated from an active data guard? Yes, this is supported in 12.1.2.1.0 (but not previous version) GoldenGate classic extract, with parameter: TRANLOGOPTIONS MINEFROMACTIVEDG For versions older than 12.1.2.1.0 the below error can occur: ERROR OGG-00303  Unrecognized option (MINEFROMACTIVEDG) for TRANLOGOPTIONS. So Goldengate must be upgraded to 12.1.2.1.0 or later versions to resolve it.
+
 ```bash
-GGSCI (core_dg) 2> add extract exthx, INTEGRATED tranlog, begin now
+# 在adg节点standby状态下，无法使用集成模式
+GGSCI (core_dg) 2> add extract exthx, tranlog, threads 2, begin now
 EXTRACT (Integrated) added.
 
 
@@ -600,6 +608,8 @@ GETUPDATEBEFORES
 LOGALLSUPCOLS
 NOCOMPRESSUPDATES
 UPDATERECORDFORMAT FULL
+
+TRANLOGOPTIONS MINEFROMACTIVEDG
 
 REPORTCOUNT EVERY 60 SECONDS, RATE
 
