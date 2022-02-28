@@ -773,8 +773,8 @@ table ens_cbank.*;
 ## 3.9 注册数据库
 
 ```bash
-# ogg命令行登录oracle
-GGSCI (core_dg) 20> dblogin USERIDALIAS ogg_hx
+# ogg命令行登录oracle，登录主库注册
+GGSCI (core_dg as ggadm@coredb) 19> dblogin userid ggadm@coredb password oracle
 Successfully logged into database.
 
 # 注册数据库
@@ -797,6 +797,14 @@ GGSCI (core_dg as ggadm@coredb2) 23> start pphx
 
 
 # 4. 源柜面库
+
+> 源柜面库是多租户模式的adg主备节点，关于在adg节点部署ogg和在多租户模式下部署ogg，有如下文档说明
+>
+> ADG-OGG：You can configure Classic Extract to access both redo data and metadata in real-time to successfully replicate source database activities using Oracle Active Data Guard. This is known as *Active Data Guard* (ADG) mode.
+>
+> Multitenant Container Databases - OGG：Extract must operate in integrated capture mode. See Deciding Which Capture Method to Use for more information about Extract capture modes. Replicat can operate in any of its modes
+>
+> 因此，CDB+ADG架构下，无法在adg节点安装ogg
 
 ## 4.1 创建用户
 
@@ -825,6 +833,7 @@ User created.
 SQL> exec dbms_goldengate_auth.grant_admin_privilege('C##GGADMIN',container=>'ALL');
 
 PL/SQL procedure successfully completed.
+
 
 SQL> ALTER SYSTEM SET ENABLE_GOLDENGATE_REPLICATION = TRUE;
 
@@ -947,7 +956,10 @@ Successfully logged into database CDB$ROOT.
 ```bash
 # 在cdb模式下添加需要注意：1、必须登录到主库root容器；2、必须增加容器名，即 容器名+数据库+数据表
 
-GGSCI (core_dg as C##GGADMIN@hxdb1/CDB$ROOT) 10> 
+GGSCI (core_dg as C##GGADMIN@hxdb2/CDB$ROOT) 42> dblogin useridalias ogg_gm
+Successfully logged into database CDB$ROOT.
+
+GGSCI (core_dg as C##GGADMIN@hxdb/CDB$ROOT) 4>
 add trandata tellerdb.teller9.sso_rolebasic
 add trandata tellerdb.teller9.sso_userrole
 add trandata tellerdb.teller9.sso_roleaccessresource
@@ -1054,6 +1066,15 @@ RMTTRAIL added.
 GGSCI (core_dg as C##GGADMIN@hxdb1/CDB$ROOT) 32> edit params ppgm
 
 # 添加如下配置
+EXTRACT ppgm
+setenv (NLS_LANG=AMERICAN_AMERICA.UTF8)
+USERIDALIAS ogg_gm
+discardfile ./dirrpt/ppgm.dsc,append,megabytes 4000
+rmthost 160.161.12.43 mgrport 7809
+rmttrail /home/ogg12/dirdat/gm
+
+PASSTHRU
+table tellerdb.teller9.*;
 ```
 
 
