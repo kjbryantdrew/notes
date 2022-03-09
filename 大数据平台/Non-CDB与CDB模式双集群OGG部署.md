@@ -393,6 +393,8 @@ add trandata ens_cbank.lm_limit_cumulative
 add trandata ens_cbank.lm_tran_limit_def
 add trandata ens_cbank.stria_flow
 add trandata ens_cbank.mb_sxc_tran_hist
+add trandata table ens_cbank.mb_appr_letter;
+add trandata table ens_cbank.mb_appr_letter_sub;
 ```
 
 ## 3.4 添加检查点
@@ -546,6 +548,8 @@ table ens_cbank.lm_limit_cumulative;
 table ens_cbank.lm_tran_limit_def;
 table ens_cbank.stria_flow;
 table ens_cbank.mb_sxc_tran_hist;
+table ens_cbank.mb_appr_letter;
+table ens_cbank.mb_appr_letter_sub;
 ```
 
 ### 3.5.2 生成表结构定义文件
@@ -744,6 +748,8 @@ table ens_cbank.lm_limit_cumulative;
 table ens_cbank.lm_tran_limit_def;
 table ens_cbank.stria_flow;
 table ens_cbank.mb_sxc_tran_hist;
+table ens_cbank.mb_appr_letter;
+table ens_cbank.mb_appr_letter_sub;
 ```
 
 ## 3.8 pump配置
@@ -1232,7 +1238,7 @@ MAP ens_cbank.tb_voucher_def, TARGET ens_cbank.tb_voucher_def;
 MAP ens_cbank.tb_voucher_info, TARGET ens_cbank.tb_voucher_info;
 
 -- 日终任务参数表
--- MAP ens_cbank.fm_system, TARGET ens_cbank.fm_system, FILTER(@STREQ (process_split_ind, 'N')), EVENTACTIONS(SHELL "/home/ogg12/t.sh", LOG INFO, STOP);
+-- MAP ens_cbank.fm_system, TARGET ens_cbank.fm_system, FILTER(@STREQ (process_split_ind, 'N')), EVENTACTIONS(SHELL "/home/ogg12/pd_control.sh", LOG INFO, STOP);
 MAP ens_cbank.fm_system, TARGET ens_cbank.fm_system;
 
 MAP ens_cbank.rc_all_list, TARGET ens_cbank.rc_all_list;
@@ -1271,6 +1277,8 @@ MAP ens_cbank.lm_limit_cumulative; TARGET ens_cbank.lm_limit_cumulative;
 MAP ens_cbank.lm_tran_limit_def; TARGET ens_cbank.lm_tran_limit_def;
 MAP ens_cbank.stria_flow; TARGET ens_cbank.stria_flow;
 MAP ens_cbank.mb_sxc_tran_hist; TARGET ens_cbank.mb_sxc_tran_hist;
+MAP ens_cbank.mb_appr_letter; TARGET ens_cbank.mb_appr_letter;
+MAP ens_cbank.mb_appr_letter_sub; TARGET ens_cbank.mb_appr_letter_sub;
 
 
 # 核心柜面库部分
