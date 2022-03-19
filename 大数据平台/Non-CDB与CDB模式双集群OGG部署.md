@@ -393,8 +393,9 @@ add trandata ens_cbank.lm_limit_cumulative
 add trandata ens_cbank.lm_tran_limit_def
 add trandata ens_cbank.stria_flow
 add trandata ens_cbank.mb_sxc_tran_hist
-add trandata table ens_cbank.mb_appr_letter;
-add trandata table ens_cbank.mb_appr_letter_sub;
+add trandata ens_cbank.mb_appr_letter
+add trandata ens_cbank.mb_appr_letter_sub
+add trandata ens_cbank.irl_basis_rate
 ```
 
 ## 3.4 添加检查点
@@ -550,6 +551,7 @@ table ens_cbank.stria_flow;
 table ens_cbank.mb_sxc_tran_hist;
 table ens_cbank.mb_appr_letter;
 table ens_cbank.mb_appr_letter_sub;
+table ens_cbank.irl_basis_rate;
 ```
 
 ### 3.5.2 生成表结构定义文件
@@ -750,6 +752,7 @@ table ens_cbank.stria_flow;
 table ens_cbank.mb_sxc_tran_hist;
 table ens_cbank.mb_appr_letter;
 table ens_cbank.mb_appr_letter_sub;
+table ens_cbank.irl_basis_rate;
 ```
 
 ## 3.8 pump配置

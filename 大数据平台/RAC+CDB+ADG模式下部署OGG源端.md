@@ -400,6 +400,7 @@ add trandata guimiandb.teller.tl9_resource_mapping
 add trandata guimiandb.teller.tl9_business_journala_extends
 add trandata guimiandb.teller.tl9_business_journala
 add trandata guimiandb.teller.tl9_unprint_tran
+add trandata hexindb.ens_cbank.irl_basis_rate
 ```
 
 ## 2.8 添加检查点
@@ -557,6 +558,7 @@ table hexindb.ens_cbank.stria_flow;
 table hexindb.ens_cbank.mb_sxc_tran_hist;
 table hexindb.ens_cbank.mb_appr_letter;
 table hexindb.ens_cbank.mb_appr_letter_sub;
+table hexindb.ens_cbank.irl_basis_rate;
 
 
 # 生成表结构
@@ -777,6 +779,7 @@ table hexindb.ens_cbank.stria_flow;
 table hexindb.ens_cbank.mb_sxc_tran_hist;
 table hexindb.ens_cbank.mb_appr_letter;
 table hexindb.ens_cbank.mb_appr_letter_sub;
+table hexindb.ens_cbank.irl_basis_rate;
 
 
 # 第二部分：柜面库guimiandb
@@ -1040,6 +1043,7 @@ MAP hexindb.ens_cbank.stria_flow; TARGET ens_cbank.stria_flow;
 MAP hexindb.ens_cbank.mb_sxc_tran_hist; TARGET ens_cbank.mb_sxc_tran_hist;
 MAP hexindb.ens_cbank.mb_appr_letter; TARGET ens_cbank.mb_appr_letter;
 MAP hexindb.ens_cbank.mb_appr_letter_sub; TARGET ens_cbank.mb_appr_letter_sub;
+MAP hexindb.ens_cbank.irl_basis_rate; TARGET ens_cbank.irl_basis_rate;
 
 
 # 第二部分：柜面库guimiandb
