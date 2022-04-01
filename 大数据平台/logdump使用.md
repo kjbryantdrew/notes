@@ -20,8 +20,8 @@ Logdump 3> DETAIL DATA
 > filter include / exclude FILENAME FNSONLD.GLIF
 # 过滤字段内容
 > filter include / exclude string 'abc123'
-# 匹配
-> filter match all
+# 匹配/清楚
+> filter match/clear all
 # 统计匹配数
 > count
 ```
