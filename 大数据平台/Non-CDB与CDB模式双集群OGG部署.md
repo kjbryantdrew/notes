@@ -1,5 +1,3 @@
-> 新核心UAT3环境统一采用单生产节点，UAT4环境统一采用RAC+CDB+ADG架构，而正式的生产环境将交易库和管理库（管理库中有需要同步的柜面库）做了架构拆分，交易库采用RAC+Non_CDB+ADG的模式，管理库采用RAC+CDB+ADG的模式。在双架构下，预设部署方案为：将ogg源端程序部署在交易库adg节点(因为主要同步内容在交易库)，同时在adg的Oracle下添加对管理库的adg节点的监听，远程抽取管理库日志。
-
 # 1. 源交易库
 
 ## 1.1 开启数据库日志
@@ -243,7 +241,7 @@ GGSCI (core_dg) 1> add credentialstore
 
 Credential store created.
 
-GGSCI (core_dg) 2> alter credentialstore add user ggadm@coredbdg password oracle alias ogg_hx
+GGSCI (core_dg) 2> alter credentialstore add user ggadm@coredbd password oracle alias ogg_hx
 # ggadm/oracle为1.3章节中在主库上创建的ogg用户名和密码
 # 特别注意：“@coredbdg”中，coredbdg为dg节点的Oracle监听程序中配置的对adg库的监听服务名，从$ORACLE_HOME/network/admin/tnsnames.ora中获取到的
 Credential store altered.
@@ -254,7 +252,7 @@ Successfully logged into database.
 
 ## 3.3 添加表的附加日志
 
-```shell
+```bash
 # 先登录
 # 开启附加日志需要写入log group信息，需要登录到主库进行
 GGSCI (core_dg as ggadm@coredb) 471> dblogin userid ggadm@coredb password oracle
@@ -264,6 +262,7 @@ Successfully logged into database.
 add trandata ens_cbank.ac_subject
 add trandata ens_cbank.cd_card_arch
 add trandata ens_cbank.cd_card_chg
+add trandata ens_cbank.cd_card_journal
 add trandata ens_cbank.cif_business
 add trandata ens_cbank.cif_category_type
 add trandata ens_cbank.cif_class_4
@@ -271,16 +270,20 @@ add trandata ens_cbank.cif_class_5
 add trandata ens_cbank.cif_client
 add trandata ens_cbank.cif_client_contact_address
 add trandata ens_cbank.cif_client_contact_tbl
+add trandata ens_cbank.cif_client_contacts_info
 add trandata ens_cbank.cif_client_corp
 add trandata ens_cbank.cif_client_document
 add trandata ens_cbank.cif_client_indvl
 add trandata ens_cbank.cif_client_status
 add trandata ens_cbank.cif_client_type
+add trandata ens_cbank.cif_client_verification
 add trandata ens_cbank.cif_cross_relations
+add trandata ens_cbank.cif_document_read
 add trandata ens_cbank.cif_document_type
 add trandata ens_cbank.cif_education
 add trandata ens_cbank.cif_industry
 add trandata ens_cbank.cif_occupation
+add trandata ens_cbank.cif_qualification
 add trandata ens_cbank.cif_relation_type
 add trandata ens_cbank.cif_resident_type
 add trandata ens_cbank.dc_precontract
@@ -295,49 +298,82 @@ add trandata ens_cbank.fm_loc_holiday
 add trandata ens_cbank.fm_period_freq
 add trandata ens_cbank.fm_ref_code
 add trandata ens_cbank.fm_restraint_type
+add trandata ens_cbank.fm_settlement_type
 add trandata ens_cbank.fm_state
+add trandata ens_cbank.fm_system
+add trandata ens_cbank.fm_system_id
 add trandata ens_cbank.fm_tran_info
 add trandata ens_cbank.fm_user
+add trandata ens_cbank.fx_mb_exchange_tran_hist
+add trandata ens_cbank.gl_acct_type
+add trandata ens_cbank.gl_amount_type
+add trandata ens_cbank.gl_event_type
 add trandata ens_cbank.gl_prod_accounting
+add trandata ens_cbank.irl_accr_info_main
+add trandata ens_cbank.irl_basis_rate
+add trandata ens_cbank.irl_capt_info
 add trandata ens_cbank.irl_ccy_rate
 add trandata ens_cbank.irl_exchange_type
 add trandata ens_cbank.irl_int_basis
 add trandata ens_cbank.irl_int_matrix
 add trandata ens_cbank.irl_int_rate
+add trandata ens_cbank.irl_int_split
 add trandata ens_cbank.irl_int_type
 add trandata ens_cbank.irl_prod_int
 add trandata ens_cbank.irl_prod_type
+add trandata ens_cbank.lm_limit_cumulative
+add trandata ens_cbank.lm_tran_limit_def
+add trandata ens_cbank.mb_ac_hist
 add trandata ens_cbank.mb_accounting_status
 add trandata ens_cbank.mb_acct
 add trandata ens_cbank.mb_acct_attach
 add trandata ens_cbank.mb_acct_balance
+add trandata ens_cbank.mb_acct_discount
+add trandata ens_cbank.mb_acct_hist
 add trandata ens_cbank.mb_acct_int_detail
+add trandata ens_cbank.mb_acct_nature_def
 add trandata ens_cbank.mb_acct_schedule_detail
+add trandata ens_cbank.mb_acct_settle
+add trandata ens_cbank.mb_acct_up_grade_info
 add trandata ens_cbank.mb_ad_register
 add trandata ens_cbank.mb_agreement
 add trandata ens_cbank.mb_agreement_accord
 add trandata ens_cbank.mb_agreement_sms
 add trandata ens_cbank.mb_agreement_sxc
+add trandata ens_cbank.mb_agreement_yht
+add trandata ens_cbank.mb_appr_letter
+add trandata ens_cbank.mb_appr_letter_sub
 add trandata ens_cbank.mb_attr_value
 add trandata ens_cbank.mb_batch_open_details
+add trandata ens_cbank.mb_batch_tran
+add trandata ens_cbank.mb_batch_transfer_details
 add trandata ens_cbank.mb_cdt_info
 add trandata ens_cbank.mb_certificate_type
-add trandata ENS_CBANK.mb_commission_register
+add trandata ens_cbank.mb_commission_register
 add trandata ens_cbank.mb_debt_asset
-add trandata ens_cbank.mb_debt_asset_loan
 add trandata ens_cbank.mb_debt_asset_hist
+add trandata ens_cbank.mb_debt_asset_loan
+add trandata ens_cbank.mb_event_part
+add trandata ens_cbank.mb_event_type
 add trandata ens_cbank.mb_fin_detail
-add trandata ENS_CBANK.mb_impound_info
+add trandata ens_cbank.mb_impound_info
 add trandata ens_cbank.mb_invoice
+add trandata ens_cbank.mb_launch
+add trandata ens_cbank.mb_launch_detail
 add trandata ens_cbank.mb_materials_type
+add trandata ens_cbank.mb_nocard_file
 add trandata ens_cbank.mb_open_close_reg
-add trandata ens_cbank.mb_prod_type
+add trandata ens_cbank.mb_payinfo
 add trandata ens_cbank.mb_prod_define
+add trandata ens_cbank.mb_prod_type
+add trandata ens_cbank.mb_reason_code
 add trandata ens_cbank.mb_receipt
 add trandata ens_cbank.mb_receipt_detail
 add trandata ens_cbank.mb_restraints
+add trandata ens_cbank.mb_seal_relation
 add trandata ens_cbank.mb_stage_define
 add trandata ens_cbank.mb_stage_matrix
+add trandata ens_cbank.mb_sxc_tran_hist
 add trandata ens_cbank.mb_tda_hist
 add trandata ens_cbank.mb_tran_def
 add trandata ens_cbank.mb_tran_hist
@@ -347,8 +383,11 @@ add trandata ens_cbank.mb_xfc_fin
 add trandata ens_cbank.mb_xfc_stage_define
 add trandata ens_cbank.mm_interbank_busi_reg
 add trandata ens_cbank.mm_interbank_repay_detail
-add trandata ens_cbank.nx_rc_cust_list_mg
+add trandata ens_cbank.rc_all_list
+add trandata ens_cbank.rc_list_category
+add trandata ens_cbank.rc_list_type
 add trandata ens_cbank.stc_acct
+add trandata ens_cbank.stria_flow
 add trandata ens_cbank.tb_cash_balance
 add trandata ens_cbank.tb_cash_journal
 add trandata ens_cbank.tb_cash_move
@@ -356,46 +395,6 @@ add trandata ens_cbank.tb_cash_move_detail
 add trandata ens_cbank.tb_trailbox
 add trandata ens_cbank.tb_voucher_def
 add trandata ens_cbank.tb_voucher_info
-add trandata ens_cbank.fm_system
-add trandata ens_cbank.rc_all_list
-add trandata ens_cbank.fm_settlement_type
-add trandata ens_cbank.mb_event_type
-add trandata ens_cbank.gl_event_type
-add trandata ens_cbank.rc_list_type
-add trandata ens_cbank.rc_list_category
-add trandata ens_cbank.fm_system_id
-add trandata ens_cbank.mb_event_part
-add trandata ens_cbank.cd_card_journal
-add trandata ens_cbank.mb_ac_hist
-add trandata ens_cbank.mb_batch_tran
-add trandata ens_cbank.mb_batch_transfer_details
-add trandata ens_cbank.cif_client_verification
-add trandata ens_cbank.fx_mb_exchange_tran_hist
-add trandata ens_cbank.gl_acct_type
-add trandata ens_cbank.mb_acct_discount
-add trandata ens_cbank.mb_seal_relation
-add trandata ens_cbank.mb_agreement_yht
-add trandata ens_cbank.mb_payinfo
-add trandata ens_cbank.irl_capt_info
-add trandata ens_cbank.irl_accr_info_main
-add trandata ens_cbank.irl_int_split
-add trandata ens_cbank.gl_amount_type
-add trandata ens_cbank.mb_acct_settle
-add trandata ens_cbank.mb_acct_nature_def
-add trandata ens_cbank.mb_launch
-add trandata ens_cbank.mb_launch_detail
-add trandata ens_cbank.mb_reason_code
-add trandata ens_cbank.cif_qualification
-add trandata ens_cbank.mb_acct_hist
-add trandata ens_cbank.mb_nocard_file
-add trandata ens_cbank.cif_document_read
-add trandata ens_cbank.lm_limit_cumulative
-add trandata ens_cbank.lm_tran_limit_def
-add trandata ens_cbank.stria_flow
-add trandata ens_cbank.mb_sxc_tran_hist
-add trandata ens_cbank.mb_appr_letter
-add trandata ens_cbank.mb_appr_letter_sub
-add trandata ens_cbank.irl_basis_rate
 ```
 
 ## 3.4 添加检查点
@@ -421,6 +420,7 @@ defsfile ./dirdef/def_hx.def PURGE
 table ens_cbank.ac_subject;
 table ens_cbank.cd_card_arch;
 table ens_cbank.cd_card_chg;
+table ens_cbank.cd_card_journal;
 table ens_cbank.cif_business;
 table ens_cbank.cif_category_type;
 table ens_cbank.cif_class_4;
@@ -428,16 +428,20 @@ table ens_cbank.cif_class_5;
 table ens_cbank.cif_client;
 table ens_cbank.cif_client_contact_address;
 table ens_cbank.cif_client_contact_tbl;
+table ens_cbank.cif_client_contacts_info;
 table ens_cbank.cif_client_corp;
 table ens_cbank.cif_client_document;
 table ens_cbank.cif_client_indvl;
 table ens_cbank.cif_client_status;
 table ens_cbank.cif_client_type;
+table ens_cbank.cif_client_verification;
 table ens_cbank.cif_cross_relations;
+table ens_cbank.cif_document_read;
 table ens_cbank.cif_document_type;
 table ens_cbank.cif_education;
 table ens_cbank.cif_industry;
 table ens_cbank.cif_occupation;
+table ens_cbank.cif_qualification;
 table ens_cbank.cif_relation_type;
 table ens_cbank.cif_resident_type;
 table ens_cbank.dc_precontract;
@@ -452,48 +456,82 @@ table ens_cbank.fm_loc_holiday;
 table ens_cbank.fm_period_freq;
 table ens_cbank.fm_ref_code;
 table ens_cbank.fm_restraint_type;
+table ens_cbank.fm_settlement_type;
 table ens_cbank.fm_state;
+table ens_cbank.fm_system;
+table ens_cbank.fm_system_id;
 table ens_cbank.fm_tran_info;
 table ens_cbank.fm_user;
+table ens_cbank.fx_mb_exchange_tran_hist;
+table ens_cbank.gl_acct_type;
+table ens_cbank.gl_amount_type;
+table ens_cbank.gl_event_type;
 table ens_cbank.gl_prod_accounting;
+table ens_cbank.irl_accr_info_main;
+table ens_cbank.irl_basis_rate;
+table ens_cbank.irl_capt_info;
 table ens_cbank.irl_ccy_rate;
 table ens_cbank.irl_exchange_type;
 table ens_cbank.irl_int_basis;
 table ens_cbank.irl_int_matrix;
 table ens_cbank.irl_int_rate;
+table ens_cbank.irl_int_split;
 table ens_cbank.irl_int_type;
 table ens_cbank.irl_prod_int;
 table ens_cbank.irl_prod_type;
+table ens_cbank.lm_limit_cumulative;
+table ens_cbank.lm_tran_limit_def;
+table ens_cbank.mb_ac_hist;
 table ens_cbank.mb_accounting_status;
 table ens_cbank.mb_acct;
 table ens_cbank.mb_acct_attach;
 table ens_cbank.mb_acct_balance;
+table ens_cbank.mb_acct_discount;
+table ens_cbank.mb_acct_hist;
 table ens_cbank.mb_acct_int_detail;
+table ens_cbank.mb_acct_nature_def;
 table ens_cbank.mb_acct_schedule_detail;
+table ens_cbank.mb_acct_settle;
+table ens_cbank.mb_acct_up_grade_info;
 table ens_cbank.mb_ad_register;
 table ens_cbank.mb_agreement;
 table ens_cbank.mb_agreement_accord;
 table ens_cbank.mb_agreement_sms;
 table ens_cbank.mb_agreement_sxc;
+table ens_cbank.mb_agreement_yht;
+table ens_cbank.mb_appr_letter;
+table ens_cbank.mb_appr_letter_sub;
 table ens_cbank.mb_attr_value;
 table ens_cbank.mb_batch_open_details;
+table ens_cbank.mb_batch_tran;
+table ens_cbank.mb_batch_transfer_details;
 table ens_cbank.mb_cdt_info;
 table ens_cbank.mb_certificate_type;
 table ens_cbank.mb_commission_register;
 table ens_cbank.mb_debt_asset;
-table ens_cbank.mb_debt_asset_loan;
 table ens_cbank.mb_debt_asset_hist;
+table ens_cbank.mb_debt_asset_loan;
+table ens_cbank.mb_event_part;
+table ens_cbank.mb_event_type;
 table ens_cbank.mb_fin_detail;
 table ens_cbank.mb_impound_info;
 table ens_cbank.mb_invoice;
+table ens_cbank.mb_launch;
+table ens_cbank.mb_launch_detail;
 table ens_cbank.mb_materials_type;
+table ens_cbank.mb_nocard_file;
 table ens_cbank.mb_open_close_reg;
+table ens_cbank.mb_payinfo;
+table ens_cbank.mb_prod_define;
 table ens_cbank.mb_prod_type;
+table ens_cbank.mb_reason_code;
 table ens_cbank.mb_receipt;
 table ens_cbank.mb_receipt_detail;
 table ens_cbank.mb_restraints;
+table ens_cbank.mb_seal_relation;
 table ens_cbank.mb_stage_define;
 table ens_cbank.mb_stage_matrix;
+table ens_cbank.mb_sxc_tran_hist;
 table ens_cbank.mb_tda_hist;
 table ens_cbank.mb_tran_def;
 table ens_cbank.mb_tran_hist;
@@ -503,7 +541,11 @@ table ens_cbank.mb_xfc_fin;
 table ens_cbank.mb_xfc_stage_define;
 table ens_cbank.mm_interbank_busi_reg;
 table ens_cbank.mm_interbank_repay_detail;
+table ens_cbank.rc_all_list;
+table ens_cbank.rc_list_category;
+table ens_cbank.rc_list_type;
 table ens_cbank.stc_acct;
+table ens_cbank.stria_flow;
 table ens_cbank.tb_cash_balance;
 table ens_cbank.tb_cash_journal;
 table ens_cbank.tb_cash_move;
@@ -511,47 +553,7 @@ table ens_cbank.tb_cash_move_detail;
 table ens_cbank.tb_trailbox;
 table ens_cbank.tb_voucher_def;
 table ens_cbank.tb_voucher_info;
-table ens_cbank.fm_system;
-table ens_cbank.rc_all_list;
-table ens_cbank.fm_settlement_type;
-table ens_cbank.mb_event_type;
-table ens_cbank.gl_event_type;
-table ens_cbank.rc_list_type;
-table ens_cbank.rc_list_category;
-table ens_cbank.fm_system_id;
-table ens_cbank.mb_event_part;
-table ens_cbank.cd_card_journal;
-table ens_cbank.mb_ac_hist;
-table ens_cbank.mb_batch_tran;
-table ens_cbank.mb_batch_transfer_details;
-table ens_cbank.cif_client_verification;
-table ens_cbank.fx_mb_exchange_tran_hist;
-table ens_cbank.gl_acct_type;
-table ens_cbank.mb_acct_discount;
-table ens_cbank.mb_seal_relation;
-table ens_cbank.mb_agreement_yht;
-table ens_cbank.mb_prod_define;
-table ens_cbank.mb_payinfo;
-table ens_cbank.irl_capt_info;
-table ens_cbank.irl_accr_info_main;
-table ens_cbank.irl_int_split;
-table ens_cbank.gl_amount_type;
-table ens_cbank.mb_acct_settle;
-table ens_cbank.mb_acct_nature_def;
-table ens_cbank.mb_launch;
-table ens_cbank.mb_launch_detail;
-table ens_cbank.mb_reason_code;
-table ens_cbank.cif_qualification;
-table ens_cbank.mb_acct_hist;
-table ens_cbank.mb_nocard_file;
-table ens_cbank.cif_document_read;
-table ens_cbank.lm_limit_cumulative;
-table ens_cbank.lm_tran_limit_def;
-table ens_cbank.stria_flow;
-table ens_cbank.mb_sxc_tran_hist;
-table ens_cbank.mb_appr_letter;
-table ens_cbank.mb_appr_letter_sub;
-table ens_cbank.irl_basis_rate;
+
 ```
 
 ### 3.5.2 生成表结构定义文件
@@ -576,7 +578,7 @@ GGSCI (core_dg) 1> edit param mgr
 PORT 7809
 DYNAMICPORTLIST 7810-7820
 AUTORESTART ER *,RETRIES 3,WAITMINUTES 3, RESETMINUTES 60
-PURGEOLDEXTRACTS ./dirdat/*,usecheckpoints, minkeepdays 3
+PURGEOLDEXTRACTS ./dirdat/*,usecheckpoints, minkeephours 12
 LAGREPORTHOURS 1
 LAGINFOMINUTES 30
 LAGCRITICALMINUTES 45
@@ -585,12 +587,12 @@ LAGCRITICALMINUTES 45
 ## 3.7 extract配置
 
 > 比起传统模式，ogg12.1.2.1.0后支持adg上extract
->
 > Does GoldenGate support extract reading redo from generated from an active data guard? Yes, this is supported in 12.1.2.1.0 (but not previous version) GoldenGate classic extract, with parameter: TRANLOGOPTIONS MINEFROMACTIVEDG For versions older than 12.1.2.1.0 the below error can occur: ERROR OGG-00303  Unrecognized option (MINEFROMACTIVEDG) for TRANLOGOPTIONS. So Goldengate must be upgraded to 12.1.2.1.0 or later versions to resolve it.
 
 ```bash
 # 在adg节点standby状态下，无法使用集成模式
 GGSCI (core_dg) 2> add extract exthx, tranlog, threads 2, begin now
+# 如果直连主库 add extract exthx, INTEGRATED tranlog, begin now
 EXTRACT (Integrated) added.
 
 
@@ -622,6 +624,7 @@ REPORTCOUNT EVERY 60 SECONDS, RATE
 table ens_cbank.ac_subject;
 table ens_cbank.cd_card_arch;
 table ens_cbank.cd_card_chg;
+table ens_cbank.cd_card_journal;
 table ens_cbank.cif_business;
 table ens_cbank.cif_category_type;
 table ens_cbank.cif_class_4;
@@ -629,16 +632,20 @@ table ens_cbank.cif_class_5;
 table ens_cbank.cif_client;
 table ens_cbank.cif_client_contact_address;
 table ens_cbank.cif_client_contact_tbl;
+table ens_cbank.cif_client_contacts_info;
 table ens_cbank.cif_client_corp;
 table ens_cbank.cif_client_document;
 table ens_cbank.cif_client_indvl;
 table ens_cbank.cif_client_status;
 table ens_cbank.cif_client_type;
+table ens_cbank.cif_client_verification;
 table ens_cbank.cif_cross_relations;
+table ens_cbank.cif_document_read;
 table ens_cbank.cif_document_type;
 table ens_cbank.cif_education;
 table ens_cbank.cif_industry;
 table ens_cbank.cif_occupation;
+table ens_cbank.cif_qualification;
 table ens_cbank.cif_relation_type;
 table ens_cbank.cif_resident_type;
 table ens_cbank.dc_precontract;
@@ -653,48 +660,82 @@ table ens_cbank.fm_loc_holiday;
 table ens_cbank.fm_period_freq;
 table ens_cbank.fm_ref_code;
 table ens_cbank.fm_restraint_type;
+table ens_cbank.fm_settlement_type;
 table ens_cbank.fm_state;
+table ens_cbank.fm_system;
+table ens_cbank.fm_system_id;
 table ens_cbank.fm_tran_info;
 table ens_cbank.fm_user;
+table ens_cbank.fx_mb_exchange_tran_hist;
+table ens_cbank.gl_acct_type;
+table ens_cbank.gl_amount_type;
+table ens_cbank.gl_event_type;
 table ens_cbank.gl_prod_accounting;
+table ens_cbank.irl_accr_info_main;
+table ens_cbank.irl_basis_rate;
+table ens_cbank.irl_capt_info;
 table ens_cbank.irl_ccy_rate;
 table ens_cbank.irl_exchange_type;
 table ens_cbank.irl_int_basis;
 table ens_cbank.irl_int_matrix;
 table ens_cbank.irl_int_rate;
+table ens_cbank.irl_int_split;
 table ens_cbank.irl_int_type;
 table ens_cbank.irl_prod_int;
 table ens_cbank.irl_prod_type;
+table ens_cbank.lm_limit_cumulative;
+table ens_cbank.lm_tran_limit_def;
+table ens_cbank.mb_ac_hist;
 table ens_cbank.mb_accounting_status;
 table ens_cbank.mb_acct;
 table ens_cbank.mb_acct_attach;
 table ens_cbank.mb_acct_balance;
+table ens_cbank.mb_acct_discount;
+table ens_cbank.mb_acct_hist;
 table ens_cbank.mb_acct_int_detail;
+table ens_cbank.mb_acct_nature_def;
 table ens_cbank.mb_acct_schedule_detail;
+table ens_cbank.mb_acct_settle;
+table ens_cbank.mb_acct_up_grade_info;
 table ens_cbank.mb_ad_register;
 table ens_cbank.mb_agreement;
 table ens_cbank.mb_agreement_accord;
 table ens_cbank.mb_agreement_sms;
 table ens_cbank.mb_agreement_sxc;
+table ens_cbank.mb_agreement_yht;
+table ens_cbank.mb_appr_letter;
+table ens_cbank.mb_appr_letter_sub;
 table ens_cbank.mb_attr_value;
 table ens_cbank.mb_batch_open_details;
+table ens_cbank.mb_batch_tran;
+table ens_cbank.mb_batch_transfer_details;
 table ens_cbank.mb_cdt_info;
 table ens_cbank.mb_certificate_type;
 table ens_cbank.mb_commission_register;
 table ens_cbank.mb_debt_asset;
-table ens_cbank.mb_debt_asset_loan;
 table ens_cbank.mb_debt_asset_hist;
+table ens_cbank.mb_debt_asset_loan;
+table ens_cbank.mb_event_part;
+table ens_cbank.mb_event_type;
 table ens_cbank.mb_fin_detail;
 table ens_cbank.mb_impound_info;
 table ens_cbank.mb_invoice;
+table ens_cbank.mb_launch;
+table ens_cbank.mb_launch_detail;
 table ens_cbank.mb_materials_type;
+table ens_cbank.mb_nocard_file;
 table ens_cbank.mb_open_close_reg;
+table ens_cbank.mb_payinfo;
+table ens_cbank.mb_prod_define;
 table ens_cbank.mb_prod_type;
+table ens_cbank.mb_reason_code;
 table ens_cbank.mb_receipt;
 table ens_cbank.mb_receipt_detail;
 table ens_cbank.mb_restraints;
+table ens_cbank.mb_seal_relation;
 table ens_cbank.mb_stage_define;
 table ens_cbank.mb_stage_matrix;
+table ens_cbank.mb_sxc_tran_hist;
 table ens_cbank.mb_tda_hist;
 table ens_cbank.mb_tran_def;
 table ens_cbank.mb_tran_hist;
@@ -704,7 +745,11 @@ table ens_cbank.mb_xfc_fin;
 table ens_cbank.mb_xfc_stage_define;
 table ens_cbank.mm_interbank_busi_reg;
 table ens_cbank.mm_interbank_repay_detail;
+table ens_cbank.rc_all_list;
+table ens_cbank.rc_list_category;
+table ens_cbank.rc_list_type;
 table ens_cbank.stc_acct;
+table ens_cbank.stria_flow;
 table ens_cbank.tb_cash_balance;
 table ens_cbank.tb_cash_journal;
 table ens_cbank.tb_cash_move;
@@ -712,47 +757,6 @@ table ens_cbank.tb_cash_move_detail;
 table ens_cbank.tb_trailbox;
 table ens_cbank.tb_voucher_def;
 table ens_cbank.tb_voucher_info;
-table ens_cbank.fm_system;
-table ens_cbank.rc_all_list;
-table ens_cbank.fm_settlement_type;
-table ens_cbank.mb_event_type;
-table ens_cbank.gl_event_type;
-table ens_cbank.rc_list_type;
-table ens_cbank.rc_list_category;
-table ens_cbank.fm_system_id;
-table ens_cbank.mb_event_part;
-table ens_cbank.cd_card_journal;
-table ens_cbank.mb_ac_hist;
-table ens_cbank.mb_batch_tran;
-table ens_cbank.mb_batch_transfer_details;
-table ens_cbank.cif_client_verification;
-table ens_cbank.fx_mb_exchange_tran_hist;
-table ens_cbank.gl_acct_type;
-table ens_cbank.mb_acct_discount;
-table ens_cbank.mb_seal_relation;
-table ens_cbank.mb_agreement_yht;
-table ens_cbank.mb_prod_define;
-table ens_cbank.mb_payinfo;
-table ens_cbank.irl_capt_info;
-table ens_cbank.irl_accr_info_main;
-table ens_cbank.irl_int_split;
-table ens_cbank.gl_amount_type;
-table ens_cbank.mb_acct_settle;
-table ens_cbank.mb_acct_nature_def;
-table ens_cbank.mb_launch;
-table ens_cbank.mb_launch_detail;
-table ens_cbank.mb_reason_code;
-table ens_cbank.cif_qualification;
-table ens_cbank.mb_acct_hist;
-table ens_cbank.mb_nocard_file;
-table ens_cbank.cif_document_read;
-table ens_cbank.lm_limit_cumulative;
-table ens_cbank.lm_tran_limit_def;
-table ens_cbank.stria_flow;
-table ens_cbank.mb_sxc_tran_hist;
-table ens_cbank.mb_appr_letter;
-table ens_cbank.mb_appr_letter_sub;
-table ens_cbank.irl_basis_rate;
 ```
 
 ## 3.8 pump配置
@@ -803,17 +807,12 @@ GGSCI (core_dg as ggadm@coredb2) 23> start exthx
 GGSCI (core_dg as ggadm@coredb2) 23> start pphx
 ```
 
-
-
 # 4. 源柜面库
 
-> 源柜面库是多租户模式的adg主备节点，关于在adg节点部署ogg和在多租户模式下部署ogg，有如下文档说明
->
-> ADG-OGG：You can configure Classic Extract to access both redo data and metadata in real-time to successfully replicate source database activities using Oracle Active Data Guard. This is known as *Active Data Guard* (ADG) mode.
->
+> *源柜面库是多租户模式的adg主备节点，关于在adg节点部署ogg和在多租户模式下部署ogg，有如下文档说明
+> ADG-OGG：You can configure Classic Extract to access both redo data and metadata in real-time to successfully replicate source database activities using Oracle Active Data Guard. This is known as Active Data Guard (ADG) mode.
 > Multitenant Container Databases - OGG：Extract must operate in integrated capture mode. See Deciding Which Capture Method to Use for more information about Extract capture modes. Replicat can operate in any of its modes
->
-> 因此，CDB+ADG架构下，无法在adg节点安装ogg
+> 因此，CDB+ADG架构下，无法在adg节点安装ogg*
 
 ## 4.1 创建用户
 
@@ -922,14 +921,10 @@ SQL> grant connect,resource,dba to ggadm;
 Grant succeeded.
 ```
 
-
-
 # 5. 源柜面库ogg安装
 
 > 因为前文中已经在交易库的adg节点安装部署ogg源端，柜面库则使用同一个ogg源端，做远程抽取
->
 > 需要添加额外的对柜面库主库的监听配置
->
 > 本节中所有涉及到ogg的操作均在已安装完成的交易库adg节点的ogg源端用户下
 
 ## 5.1 配置监听
@@ -1018,8 +1013,6 @@ table tellerdb.teller9.tl9_unprint_tran;
 [ggs@core_dg ogg]$ scp dirdef/def_gm.def ogg12@160.161.12.43:~/dirdef/
 ```
 
-
-
 ## 5.6 manager配置
 
 manager已经在配置交易库的时候配好成功了，此处无需再次配置
@@ -1058,6 +1051,8 @@ table tellerdb.teller9.sso_rolebasic;
 table tellerdb.teller9.sso_userrole;
 table tellerdb.teller9.sso_roleaccessresource;
 table tellerdb.teller9.sso_resourcebasic;
+table tellerdb.teller9.tl9_resource_mapping;
+table tellerdb.teller9.tl9_business_journala_extends;
 table tellerdb.teller9.tl9_business_journala, COLSEXCEPT (business_data, bussview);
 table tellerdb.teller9.tl9_unprint_tran;
 ```
@@ -1085,8 +1080,6 @@ rmttrail /home/ogg12/dirdat/gm
 PASSTHRU
 table tellerdb.teller9.*;
 ```
-
-
 
 ## 5.9 注册数据库
 
@@ -1117,14 +1110,13 @@ EXTRACT     RUNNING     PPGM        00:00:00      00:00:08
 EXTRACT     RUNNING     PPHX        00:00:00      00:00:00
 ```
 
-
-
 # 6. ogg目标端
 
 ## 6.1 kafka
 
-1. 增加topic
-2. 创建consumer并注册topic
+1.  增加topic
+
+2.  创建consumer并注册topic
 
 ## 6.2 replicat配置
 
@@ -1145,9 +1137,14 @@ MAXTRANSOPS 20000
 GETTRUNCATES
 REPLACEBADCHAR NULL FORCECHECK
 
+-- 日终任务参数表
+-- MAP ens_cbank.fm_system, TARGET ens_cbank.fm_system, FILTER(@STREQ (process_split_ind, 'N')), EVENTACTIONS(SHELL "/home/ogg12/pd_control.sh", LOG INFO, STOP);
+MAP ens_cbank.fm_system, TARGET ens_cbank.fm_system;
+
 MAP ens_cbank.ac_subject, TARGET ens_cbank.ac_subject;
 MAP ens_cbank.cd_card_arch, TARGET ens_cbank.cd_card_arch;
 MAP ens_cbank.cd_card_chg, TARGET ens_cbank.cd_card_chg;
+MAP ens_cbank.cd_card_journal, TARGET ens_cbank.cd_card_journal;
 MAP ens_cbank.cif_business, TARGET ens_cbank.cif_business;
 MAP ens_cbank.cif_category_type, TARGET ens_cbank.cif_category_type;
 MAP ens_cbank.cif_class_4, TARGET ens_cbank.cif_class_4;
@@ -1155,16 +1152,20 @@ MAP ens_cbank.cif_class_5, TARGET ens_cbank.cif_class_5;
 MAP ens_cbank.cif_client, TARGET ens_cbank.cif_client;
 MAP ens_cbank.cif_client_contact_address, TARGET ens_cbank.cif_client_contact_address;
 MAP ens_cbank.cif_client_contact_tbl, TARGET ens_cbank.cif_client_contact_tbl;
+MAP ens_cbank.cif_client_contacts_info; TARGET ens_cbank.cif_client_contacts_info;
 MAP ens_cbank.cif_client_corp, TARGET ens_cbank.cif_client_corp;
 MAP ens_cbank.cif_client_document, TARGET ens_cbank.cif_client_document;
 MAP ens_cbank.cif_client_indvl, TARGET ens_cbank.cif_client_indvl;
 MAP ens_cbank.cif_client_status, TARGET ens_cbank.cif_client_status;
 MAP ens_cbank.cif_client_type, TARGET ens_cbank.cif_client_type;
+MAP ens_cbank.cif_client_verification, TARGET ens_cbank.cif_client_verification;
 MAP ens_cbank.cif_cross_relations, TARGET ens_cbank.cif_cross_relations;
+MAP ens_cbank.cif_document_read; TARGET ens_cbank.cif_document_read;
 MAP ens_cbank.cif_document_type, TARGET ens_cbank.cif_document_type;
 MAP ens_cbank.cif_education, TARGET ens_cbank.cif_education;
 MAP ens_cbank.cif_industry, TARGET ens_cbank.cif_industry;
 MAP ens_cbank.cif_occupation, TARGET ens_cbank.cif_occupation;
+MAP ens_cbank.cif_qualification; TARGET ens_cbank.cif_qualification;
 MAP ens_cbank.cif_relation_type, TARGET ens_cbank.cif_relation_type;
 MAP ens_cbank.cif_resident_type, TARGET ens_cbank.cif_resident_type;
 MAP ens_cbank.dc_precontract, TARGET ens_cbank.dc_precontract;
@@ -1179,48 +1180,80 @@ MAP ens_cbank.fm_loc_holiday, TARGET ens_cbank.fm_loc_holiday;
 MAP ens_cbank.fm_period_freq, TARGET ens_cbank.fm_period_freq;
 MAP ens_cbank.fm_ref_code, TARGET ens_cbank.fm_ref_code;
 MAP ens_cbank.fm_restraint_type, TARGET ens_cbank.fm_restraint_type;
+MAP ens_cbank.fm_settlement_type, TARGET ens_cbank.fm_settlement_type;
 MAP ens_cbank.fm_state, TARGET ens_cbank.fm_state;
-MAP ens_cbank.fm_tran_info, TARGET ens_cbank.fm_tran_info, KEYCOLS (TRAN_SEQ_NO);
+MAP ens_cbank.fm_system_id, TARGET ens_cbank.fm_system_id;
+MAP ens_cbank.fm_tran_info, TARGET ens_cbank.fm_tran_info;
 MAP ens_cbank.fm_user, TARGET ens_cbank.fm_user;
+MAP ens_cbank.fx_mb_exchange_tran_hist, TARGET ens_cbank.fx_mb_exchange_tran_hist;
+MAP ens_cbank.gl_acct_type, TARGET ens_cbank.gl_acct_type;
+MAP ens_cbank.gl_amount_type; TARGET ens_cbank.gl_amount_type;
+MAP ens_cbank.gl_event_type, TARGET ens_cbank.gl_event_type;
 MAP ens_cbank.gl_prod_accounting, TARGET ens_cbank.gl_prod_accounting;
+MAP ens_cbank.irl_accr_info_main; TARGET ens_cbank.irl_accr_info_main;
+MAP ens_cbank.irl_basis_rate; TARGET ens_cbank.irl_basis_rate;
+MAP ens_cbank.irl_capt_info; TARGET ens_cbank.irl_capt_info;
 MAP ens_cbank.irl_ccy_rate, TARGET ens_cbank.irl_ccy_rate;
 MAP ens_cbank.irl_exchange_type, TARGET ens_cbank.irl_exchange_type;
 MAP ens_cbank.irl_int_basis, TARGET ens_cbank.irl_int_basis;
 MAP ens_cbank.irl_int_matrix, TARGET ens_cbank.irl_int_matrix;
 MAP ens_cbank.irl_int_rate, TARGET ens_cbank.irl_int_rate;
+MAP ens_cbank.irl_int_split; TARGET ens_cbank.irl_int_split;
 MAP ens_cbank.irl_int_type, TARGET ens_cbank.irl_int_type;
 MAP ens_cbank.irl_prod_int, TARGET ens_cbank.irl_prod_int;
 MAP ens_cbank.irl_prod_type, TARGET ens_cbank.irl_prod_type;
+MAP ens_cbank.lm_limit_cumulative; TARGET ens_cbank.lm_limit_cumulative;
+MAP ens_cbank.lm_tran_limit_def; TARGET ens_cbank.lm_tran_limit_def;
+MAP ens_cbank.mb_ac_hist, TARGET ens_cbank.mb_ac_hist;
 MAP ens_cbank.mb_accounting_status, TARGET ens_cbank.mb_accounting_status;
 MAP ens_cbank.mb_acct, TARGET ens_cbank.mb_acct;
 MAP ens_cbank.mb_acct_attach, TARGET ens_cbank.mb_acct_attach;
 MAP ens_cbank.mb_acct_balance, TARGET ens_cbank.mb_acct_balance;
+MAP ens_cbank.mb_acct_discount, TARGET ens_cbank.mb_acct_discount;
+MAP ens_cbank.mb_acct_hist; TARGET ens_cbank.mb_acct_hist;
 MAP ens_cbank.mb_acct_int_detail, TARGET ens_cbank.mb_acct_int_detail;
+MAP ens_cbank.mb_acct_nature_def; TARGET ens_cbank.mb_acct_nature_def;
 MAP ens_cbank.mb_acct_schedule_detail, TARGET ens_cbank.mb_acct_schedule_detail;
+MAP ens_cbank.mb_acct_settle; TARGET ens_cbank.mb_acct_settle;
+MAP ens_cbank.mb_acct_up_grade_info; TARGET ens_cbank.mb_acct_up_grade_info;
 MAP ens_cbank.mb_ad_register, TARGET ens_cbank.mb_ad_register;
 MAP ens_cbank.mb_agreement, TARGET ens_cbank.mb_agreement;
 MAP ens_cbank.mb_agreement_accord, TARGET ens_cbank.mb_agreement_accord;
 MAP ens_cbank.mb_agreement_sms, TARGET ens_cbank.mb_agreement_sms;
 MAP ens_cbank.mb_agreement_sxc, TARGET ens_cbank.mb_agreement_sxc;
+MAP ens_cbank.mb_agreement_yht; TARGET ens_cbank.mb_agreement_yht;
+MAP ens_cbank.mb_appr_letter; TARGET ens_cbank.mb_appr_letter;
+MAP ens_cbank.mb_appr_letter_sub; TARGET ens_cbank.mb_appr_letter_sub;
 MAP ens_cbank.mb_attr_value, TARGET ens_cbank.mb_attr_value;
 MAP ens_cbank.mb_batch_open_details, TARGET ens_cbank.mb_batch_open_details;
+MAP ens_cbank.mb_batch_tran, TARGET ens_cbank.mb_batch_tran;
+MAP ens_cbank.mb_batch_transfer_details, TARGET ens_cbank.mb_batch_transfer_details;
 MAP ens_cbank.mb_cdt_info, TARGET ens_cbank.mb_cdt_info;
 MAP ens_cbank.mb_certificate_type, TARGET ens_cbank.mb_certificate_type;
-MAP ENS_CBANK.mb_commission_register, TARGET ENS_CBANK.mb_commission_register;
+MAP ens_cbank.mb_commission_register, TARGET ens_cbank.mb_commission_register;
 MAP ens_cbank.mb_debt_asset, TARGET ens_cbank.mb_debt_asset;
-MAP ens_cbank.mb_debt_asset_loan, TARGET ens_cbank.mb_debt_asset_loan;
 MAP ens_cbank.mb_debt_asset_hist, TARGET ens_cbank.mb_debt_asset_hist;
+MAP ens_cbank.mb_debt_asset_loan, TARGET ens_cbank.mb_debt_asset_loan;
+MAP ens_cbank.mb_event_part, TARGET ens_cbank.mb_event_part;
+MAP ens_cbank.mb_event_type, TARGET ens_cbank.mb_event_type;
 MAP ens_cbank.mb_fin_detail, TARGET ens_cbank.mb_fin_detail;
-MAP ENS_CBANK.mb_impound_info, TARGET ENS_CBANK.mb_impound_info, KEYCOLS (reference, tran_date, internal_key);
+MAP ens_cbank.mb_impound_info, TARGET ens_cbank.mb_impound_info;
 MAP ens_cbank.mb_invoice, TARGET ens_cbank.mb_invoice;
+MAP ens_cbank.mb_launch; TARGET ens_cbank.mb_launch;
+MAP ens_cbank.mb_launch_detail; TARGET ens_cbank.mb_launch_detail;
 MAP ens_cbank.mb_materials_type, TARGET ens_cbank.mb_materials_type;
+MAP ens_cbank.mb_nocard_file; TARGET ens_cbank.mb_nocard_file;
 MAP ens_cbank.mb_open_close_reg, TARGET ens_cbank.mb_open_close_reg;
+MAP ens_cbank.mb_prod_define; TARGET ens_cbank.mb_prod_define;
 MAP ens_cbank.mb_prod_type, TARGET ens_cbank.mb_prod_type;
+MAP ens_cbank.mb_reason_code; TARGET ens_cbank.mb_reason_code;
 MAP ens_cbank.mb_receipt, TARGET ens_cbank.mb_receipt;
 MAP ens_cbank.mb_receipt_detail, TARGET ens_cbank.mb_receipt_detail;
 MAP ens_cbank.mb_restraints, TARGET ens_cbank.mb_restraints;
+MAP ens_cbank.mb_seal_relation, TARGET ens_cbank.mb_seal_relation;
 MAP ens_cbank.mb_stage_define, TARGET ens_cbank.mb_stage_define;
 MAP ens_cbank.mb_stage_matrix, TARGET ens_cbank.mb_stage_matrix;
+MAP ens_cbank.mb_sxc_tran_hist; TARGET ens_cbank.mb_sxc_tran_hist;
 MAP ens_cbank.mb_tda_hist, TARGET ens_cbank.mb_tda_hist;
 MAP ens_cbank.mb_tran_def, TARGET ens_cbank.mb_tran_def;
 MAP ens_cbank.mb_tran_hist, TARGET ens_cbank.mb_tran_hist;
@@ -1231,7 +1264,11 @@ MAP ens_cbank.mb_xfc_stage_define, TARGET ens_cbank.mb_xfc_stage_define;
 MAP ens_cbank.mm_interbank_busi_reg, TARGET ens_cbank.mm_interbank_busi_reg;
 MAP ens_cbank.mm_interbank_repay_detail, TARGET ens_cbank.mm_interbank_repay_detail;
 MAP ens_cbank.nx_rc_cust_list_mg, TARGET ens_cbank.nx_rc_cust_list_mg;
+MAP ens_cbank.rc_all_list, TARGET ens_cbank.rc_all_list;
+MAP ens_cbank.rc_list_category, TARGET ens_cbank.rc_list_category;
+MAP ens_cbank.rc_list_type, TARGET ens_cbank.rc_list_type;
 MAP ens_cbank.stc_acct, TARGET ens_cbank.stc_acct;
+MAP ens_cbank.stria_flow; TARGET ens_cbank.stria_flow;
 MAP ens_cbank.tb_cash_balance, TARGET ens_cbank.tb_cash_balance;
 MAP ens_cbank.tb_cash_journal, TARGET ens_cbank.tb_cash_journal;
 MAP ens_cbank.tb_cash_move, TARGET ens_cbank.tb_cash_move;
@@ -1239,49 +1276,6 @@ MAP ens_cbank.tb_cash_move_detail, TARGET ens_cbank.tb_cash_move_detail;
 MAP ens_cbank.tb_trailbox, TARGET ens_cbank.tb_trailbox;
 MAP ens_cbank.tb_voucher_def, TARGET ens_cbank.tb_voucher_def;
 MAP ens_cbank.tb_voucher_info, TARGET ens_cbank.tb_voucher_info;
-
--- 日终任务参数表
--- MAP ens_cbank.fm_system, TARGET ens_cbank.fm_system, FILTER(@STREQ (process_split_ind, 'N')), EVENTACTIONS(SHELL "/home/ogg12/pd_control.sh", LOG INFO, STOP);
-MAP ens_cbank.fm_system, TARGET ens_cbank.fm_system;
-
-MAP ens_cbank.rc_all_list, TARGET ens_cbank.rc_all_list;
-MAP ens_cbank.fm_settlement_type, TARGET ens_cbank.fm_settlement_type;
-MAP ens_cbank.mb_event_type, TARGET ens_cbank.mb_event_type;
-MAP ens_cbank.gl_event_type, TARGET ens_cbank.gl_event_type;
-MAP ens_cbank.rc_list_type, TARGET ens_cbank.rc_list_type;
-MAP ens_cbank.rc_list_category, TARGET ens_cbank.rc_list_category;
-MAP ens_cbank.fm_system_id, TARGET ens_cbank.fm_system_id;
-MAP ens_cbank.mb_event_part, TARGET ens_cbank.mb_event_part;
-MAP ens_cbank.cd_card_journal, TARGET ens_cbank.cd_card_journal;
-MAP ens_cbank.mb_ac_hist, TARGET ens_cbank.mb_ac_hist;
-MAP ens_cbank.mb_batch_tran, TARGET ens_cbank.mb_batch_tran;
-MAP ens_cbank.mb_batch_transfer_details, TARGET ens_cbank.mb_batch_transfer_details;
-MAP ens_cbank.cif_client_verification, TARGET ens_cbank.cif_client_verification;
-MAP ens_cbank.fx_mb_exchange_tran_hist, TARGET ens_cbank.fx_mb_exchange_tran_hist;
-MAP ens_cbank.gl_acct_type, TARGET ens_cbank.gl_acct_type;
-MAP ens_cbank.mb_acct_discount, TARGET ens_cbank.mb_acct_discount;
-MAP ens_cbank.mb_seal_relation, TARGET ens_cbank.mb_seal_relation;
-MAP ens_cbank.mb_agreement_yht; TARGET ens_cbank.mb_agreement_yht;
-MAP ens_cbank.mb_prod_define; TARGET ens_cbank.mb_prod_define;
-MAP ens_cbank.irl_capt_info; TARGET ens_cbank.irl_capt_info;
-MAP ens_cbank.irl_accr_info_main; TARGET ens_cbank.irl_accr_info_main;
-MAP ens_cbank.irl_int_split; TARGET ens_cbank.irl_int_split;
-MAP ens_cbank.gl_amount_type; TARGET ens_cbank.gl_amount_type;
-MAP ens_cbank.mb_acct_settle; TARGET ens_cbank.mb_acct_settle;
-MAP ens_cbank.mb_acct_nature_def; TARGET ens_cbank.mb_acct_nature_def;
-MAP ens_cbank.mb_launch; TARGET ens_cbank.mb_launch;
-MAP ens_cbank.mb_launch_detail; TARGET ens_cbank.mb_launch_detail;
-MAP ens_cbank.mb_reason_code; TARGET ens_cbank.mb_reason_code;
-MAP ens_cbank.cif_qualification; TARGET ens_cbank.cif_qualification;
-MAP ens_cbank.mb_acct_hist; TARGET ens_cbank.mb_acct_hist;
-MAP ens_cbank.mb_nocard_file; TARGET ens_cbank.mb_nocard_file;
-MAP ens_cbank.cif_document_read; TARGET ens_cbank.cif_document_read;
-MAP ens_cbank.lm_limit_cumulative; TARGET ens_cbank.lm_limit_cumulative;
-MAP ens_cbank.lm_tran_limit_def; TARGET ens_cbank.lm_tran_limit_def;
-MAP ens_cbank.stria_flow; TARGET ens_cbank.stria_flow;
-MAP ens_cbank.mb_sxc_tran_hist; TARGET ens_cbank.mb_sxc_tran_hist;
-MAP ens_cbank.mb_appr_letter; TARGET ens_cbank.mb_appr_letter;
-MAP ens_cbank.mb_appr_letter_sub; TARGET ens_cbank.mb_appr_letter_sub;
 
 
 # 核心柜面库部分
@@ -1363,3 +1357,418 @@ gg.classpath=/usr/share/java/kafka/*:/usr/share/java/confluent-common/*
 
 javawriter.bootoptions=-Xmx1024m -Xms128m -Djava.class.path=.:ggjava/ggjava.jar:./dirprm
 ```
+
+# 7. 初始化配置
+
+## 7.1 源端
+
+### 7.1.1 init_gm
+
+```bash
+sourceistable
+SETENV(ORACLE_SID=guimiandb)
+USERIDALIAS ogg_gm
+rmthost 160.161.12.43, mgrport 7809
+rmtfile /home/ogg12/dirdat/gp, megabytes 200, PURGE FORMAT RELEASE 12.3
+
+table tellerdb.teller9.sso_rolebasic;
+table tellerdb.teller9.sso_userrole;
+table tellerdb.teller9.sso_roleaccessresource;
+table tellerdb.teller9.sso_resourcebasic;
+table tellerdb.teller9.tl9_resource_mapping;
+table tellerdb.teller9.tl9_business_journala_extends;
+table tellerdb.teller9.tl9_business_journala, COLSEXCEPT (business_data, bussview);
+table tellerdb.teller9.tl9_unprint_tran;
+```
+
+### 7.1.2 init_hx_no_tran
+
+```bash
+sourceistable
+--SETENV(ORACLE_SID=hexindb)
+USERIDALIAS ogg_hx
+rmthost 160.161.12.43, mgrport 7809
+rmtfile /home/ogg12/dirdat/hp, megabytes 200, PURGE FORMAT RELEASE 12.3
+
+table ens_cbank.ac_subject;
+table ens_cbank.cd_card_arch;
+table ens_cbank.cd_card_chg;
+table ens_cbank.cd_card_journal;
+table ens_cbank.cif_business;
+table ens_cbank.cif_category_type;
+table ens_cbank.cif_class_4;
+table ens_cbank.cif_class_5;
+table ens_cbank.cif_client;
+table ens_cbank.cif_client_contact_address;
+table ens_cbank.cif_client_contact_tbl;
+table ens_cbank.cif_client_contacts_info;
+table ens_cbank.cif_client_corp;
+table ens_cbank.cif_client_document;
+table ens_cbank.cif_client_indvl;
+table ens_cbank.cif_client_status;
+table ens_cbank.cif_client_type;
+table ens_cbank.cif_client_verification;
+table ens_cbank.cif_cross_relations;
+table ens_cbank.cif_document_read;
+table ens_cbank.cif_document_type;
+table ens_cbank.cif_education;
+table ens_cbank.cif_industry;
+table ens_cbank.cif_occupation;
+table ens_cbank.cif_qualification;
+table ens_cbank.cif_relation_type;
+table ens_cbank.cif_resident_type;
+table ens_cbank.dc_precontract;
+table ens_cbank.dc_stage_define;
+table ens_cbank.fm_branch;
+table ens_cbank.fm_channel;
+table ens_cbank.fm_city;
+table ens_cbank.fm_country;
+table ens_cbank.fm_currency;
+table ens_cbank.fm_dist_code;
+table ens_cbank.fm_loc_holiday;
+table ens_cbank.fm_period_freq;
+table ens_cbank.fm_ref_code;
+table ens_cbank.fm_restraint_type;
+table ens_cbank.fm_settlement_type;
+table ens_cbank.fm_state;
+table ens_cbank.fm_system;
+table ens_cbank.fm_system_id;
+-- table ens_cbank.fm_tran_info;
+table ens_cbank.fm_user;
+table ens_cbank.fx_mb_exchange_tran_hist;
+table ens_cbank.gl_acct_type;
+table ens_cbank.gl_amount_type;
+table ens_cbank.gl_event_type;
+table ens_cbank.gl_prod_accounting;
+-- table ens_cbank.irl_accr_info_main;
+table ens_cbank.irl_basis_rate;
+-- table ens_cbank.irl_capt_info;
+table ens_cbank.irl_ccy_rate;
+table ens_cbank.irl_exchange_type;
+table ens_cbank.irl_int_basis;
+table ens_cbank.irl_int_matrix;
+table ens_cbank.irl_int_rate;
+-- table ens_cbank.irl_int_split;
+table ens_cbank.irl_int_type;
+table ens_cbank.irl_prod_int;
+table ens_cbank.irl_prod_type;
+table ens_cbank.lm_limit_cumulative;
+table ens_cbank.lm_tran_limit_def;
+table ens_cbank.mb_ac_hist;
+table ens_cbank.mb_accounting_status;
+table ens_cbank.mb_acct;
+table ens_cbank.mb_acct_attach;
+table ens_cbank.mb_acct_balance;
+table ens_cbank.mb_acct_discount;
+table ens_cbank.mb_acct_hist;
+table ens_cbank.mb_acct_int_detail;
+table ens_cbank.mb_acct_nature_def;
+table ens_cbank.mb_acct_schedule_detail;
+table ens_cbank.mb_acct_settle;
+table ens_cbank.mb_acct_up_grade_info;
+table ens_cbank.mb_ad_register;
+table ens_cbank.mb_agreement;
+table ens_cbank.mb_agreement_accord;
+table ens_cbank.mb_agreement_sms;
+table ens_cbank.mb_agreement_sxc;
+table ens_cbank.mb_agreement_yht;
+table ens_cbank.mb_appr_letter;
+table ens_cbank.mb_appr_letter_sub;
+table ens_cbank.mb_attr_value;
+table ens_cbank.mb_batch_open_details;
+table ens_cbank.mb_batch_tran;
+table ens_cbank.mb_batch_transfer_details;
+table ens_cbank.mb_cdt_info;
+table ens_cbank.mb_certificate_type;
+table ens_cbank.mb_commission_register;
+table ens_cbank.mb_debt_asset;
+table ens_cbank.mb_debt_asset_hist;
+table ens_cbank.mb_debt_asset_loan;
+table ens_cbank.mb_event_part;
+table ens_cbank.mb_event_type;
+table ens_cbank.mb_fin_detail;
+table ens_cbank.mb_impound_info;
+table ens_cbank.mb_invoice;
+table ens_cbank.mb_launch;
+table ens_cbank.mb_launch_detail;
+table ens_cbank.mb_materials_type;
+table ens_cbank.mb_nocard_file;
+table ens_cbank.mb_open_close_reg;
+table ens_cbank.mb_payinfo;
+table ens_cbank.mb_prod_define;
+table ens_cbank.mb_prod_type;
+table ens_cbank.mb_reason_code;
+table ens_cbank.mb_receipt;
+table ens_cbank.mb_receipt_detail;
+table ens_cbank.mb_restraints;
+table ens_cbank.mb_seal_relation;
+table ens_cbank.mb_stage_define;
+table ens_cbank.mb_stage_matrix;
+-- table ens_cbank.mb_sxc_tran_hist;
+table ens_cbank.mb_tda_hist;
+table ens_cbank.mb_tran_def;
+-- table ens_cbank.mb_tran_hist;
+table ens_cbank.mb_transfer_contract;
+table ens_cbank.mb_transfer_detail;
+table ens_cbank.mb_xfc_fin;
+table ens_cbank.mb_xfc_stage_define;
+table ens_cbank.mm_interbank_busi_reg;
+table ens_cbank.mm_interbank_repay_detail;
+table ens_cbank.rc_all_list;
+table ens_cbank.rc_list_category;
+table ens_cbank.rc_list_type;
+table ens_cbank.stc_acct;
+table ens_cbank.stria_flow;
+table ens_cbank.tb_cash_balance;
+table ens_cbank.tb_cash_journal;
+table ens_cbank.tb_cash_move;
+table ens_cbank.tb_cash_move_detail;
+table ens_cbank.tb_trailbox;
+table ens_cbank.tb_voucher_def;
+table ens_cbank.tb_voucher_info;
+
+table ens_cbank.fm_tran_info;
+table ens_cbank.irl_capt_info;
+table ens_cbank.irl_accr_info_main;
+table ens_cbank.irl_int_split;
+```
+
+### 7.1.3 init_hx_tran
+
+```bash
+sourceistable
+-- SETENV(ORACLE_SID=hexindb)
+USERIDALIAS ogg_hx
+rmthost 160.161.12.43, mgrport 7809
+rmtfile /home/ogg12/dirdat/t2, megabytes 200, PURGE FORMAT RELEASE 12.3
+
+table ens_cbank.mb_sxc_tran_hist, SQLPREDICATE "where tran_date >= to_date('2022-02-01','yyyy-mm-dd')";
+table ens_cbank.mb_tran_hist, SQLPREDICATE "where tran_date >= to_date('2022-02-01','yyyy-mm-dd')";
+```
+
+### 7.1.4 init_tmp
+
+```bash
+sourceistable
+SETENV(ORACLE_SID=hexindb)
+USERIDALIAS oggmain
+rmthost 160.161.12.43, mgrport 7809
+rmtfile /home/ogg12/dirdat/tf, megabytes 200, PURGE FORMAT RELEASE 12.3
+
+table hexindb.ens_cbank.irl_basis_rate;
+```
+
+## 7.2 目标端
+
+### 7.2.1 init_pd_hx_no_tran
+
+```bash
+specialrun
+end runtime
+extfile ./dirdat/hp
+TARGETDB LIBFILE libggjava.so SET property=dirprm/ens_pd.props 
+SOURCEDEFS ./dirdef/def_hx.def OVERRIDE
+REPORTCOUNT EVERY 1 MINUTES, RATE
+GROUPTRANSOPS 10000
+MAXTRANSOPS 20000
+GETTRUNCATES
+
+MAP ens_cbank.fm_system, TARGET ens_cbank.fm_system;
+MAP ens_cbank.ac_subject, TARGET ens_cbank.ac_subject;
+MAP ens_cbank.cd_card_arch, TARGET ens_cbank.cd_card_arch;
+MAP ens_cbank.cd_card_chg, TARGET ens_cbank.cd_card_chg;
+MAP ens_cbank.cd_card_journal, TARGET ens_cbank.cd_card_journal;
+MAP ens_cbank.cif_business, TARGET ens_cbank.cif_business;
+MAP ens_cbank.cif_category_type, TARGET ens_cbank.cif_category_type;
+MAP ens_cbank.cif_class_4, TARGET ens_cbank.cif_class_4;
+MAP ens_cbank.cif_class_5, TARGET ens_cbank.cif_class_5;
+MAP ens_cbank.cif_client, TARGET ens_cbank.cif_client;
+MAP ens_cbank.cif_client_contact_address, TARGET ens_cbank.cif_client_contact_address;
+MAP ens_cbank.cif_client_contact_tbl, TARGET ens_cbank.cif_client_contact_tbl;
+MAP ens_cbank.cif_client_contacts_info; TARGET ens_cbank.cif_client_contacts_info;
+MAP ens_cbank.cif_client_corp, TARGET ens_cbank.cif_client_corp;
+MAP ens_cbank.cif_client_document, TARGET ens_cbank.cif_client_document;
+MAP ens_cbank.cif_client_indvl, TARGET ens_cbank.cif_client_indvl;
+MAP ens_cbank.cif_client_status, TARGET ens_cbank.cif_client_status;
+MAP ens_cbank.cif_client_type, TARGET ens_cbank.cif_client_type;
+MAP ens_cbank.cif_client_verification, TARGET ens_cbank.cif_client_verification;
+MAP ens_cbank.cif_cross_relations, TARGET ens_cbank.cif_cross_relations;
+MAP ens_cbank.cif_document_read; TARGET ens_cbank.cif_document_read;
+MAP ens_cbank.cif_document_type, TARGET ens_cbank.cif_document_type;
+MAP ens_cbank.cif_education, TARGET ens_cbank.cif_education;
+MAP ens_cbank.cif_industry, TARGET ens_cbank.cif_industry;
+MAP ens_cbank.cif_occupation, TARGET ens_cbank.cif_occupation;
+MAP ens_cbank.cif_qualification; TARGET ens_cbank.cif_qualification;
+MAP ens_cbank.cif_relation_type, TARGET ens_cbank.cif_relation_type;
+MAP ens_cbank.cif_resident_type, TARGET ens_cbank.cif_resident_type;
+MAP ens_cbank.dc_precontract, TARGET ens_cbank.dc_precontract;
+MAP ens_cbank.dc_stage_define, TARGET ens_cbank.dc_stage_define;
+MAP ens_cbank.fm_branch, TARGET ens_cbank.fm_branch;
+MAP ens_cbank.fm_channel, TARGET ens_cbank.fm_channel;
+MAP ens_cbank.fm_city, TARGET ens_cbank.fm_city;
+MAP ens_cbank.fm_country, TARGET ens_cbank.fm_country;
+MAP ens_cbank.fm_currency, TARGET ens_cbank.fm_currency;
+MAP ens_cbank.fm_dist_code, TARGET ens_cbank.fm_dist_code;
+MAP ens_cbank.fm_loc_holiday, TARGET ens_cbank.fm_loc_holiday;
+MAP ens_cbank.fm_period_freq, TARGET ens_cbank.fm_period_freq;
+MAP ens_cbank.fm_ref_code, TARGET ens_cbank.fm_ref_code;
+MAP ens_cbank.fm_restraint_type, TARGET ens_cbank.fm_restraint_type;
+MAP ens_cbank.fm_settlement_type, TARGET ens_cbank.fm_settlement_type;
+MAP ens_cbank.fm_state, TARGET ens_cbank.fm_state;
+MAP ens_cbank.fm_system_id, TARGET ens_cbank.fm_system_id;
+MAP ens_cbank.fm_tran_info, TARGET ens_cbank.fm_tran_info;
+MAP ens_cbank.fm_user, TARGET ens_cbank.fm_user;
+MAP ens_cbank.fx_mb_exchange_tran_hist, TARGET ens_cbank.fx_mb_exchange_tran_hist;
+MAP ens_cbank.gl_acct_type, TARGET ens_cbank.gl_acct_type;
+MAP ens_cbank.gl_amount_type; TARGET ens_cbank.gl_amount_type;
+MAP ens_cbank.gl_event_type, TARGET ens_cbank.gl_event_type;
+MAP ens_cbank.gl_prod_accounting, TARGET ens_cbank.gl_prod_accounting;
+MAP ens_cbank.irl_accr_info_main; TARGET ens_cbank.irl_accr_info_main;
+MAP ens_cbank.irl_basis_rate; TARGET ens_cbank.irl_basis_rate;
+MAP ens_cbank.irl_capt_info; TARGET ens_cbank.irl_capt_info;
+MAP ens_cbank.irl_ccy_rate, TARGET ens_cbank.irl_ccy_rate;
+MAP ens_cbank.irl_exchange_type, TARGET ens_cbank.irl_exchange_type;
+MAP ens_cbank.irl_int_basis, TARGET ens_cbank.irl_int_basis;
+MAP ens_cbank.irl_int_matrix, TARGET ens_cbank.irl_int_matrix;
+MAP ens_cbank.irl_int_rate, TARGET ens_cbank.irl_int_rate;
+MAP ens_cbank.irl_int_split; TARGET ens_cbank.irl_int_split;
+MAP ens_cbank.irl_int_type, TARGET ens_cbank.irl_int_type;
+MAP ens_cbank.irl_prod_int, TARGET ens_cbank.irl_prod_int;
+MAP ens_cbank.irl_prod_type, TARGET ens_cbank.irl_prod_type;
+MAP ens_cbank.lm_limit_cumulative; TARGET ens_cbank.lm_limit_cumulative;
+MAP ens_cbank.lm_tran_limit_def; TARGET ens_cbank.lm_tran_limit_def;
+MAP ens_cbank.mb_ac_hist, TARGET ens_cbank.mb_ac_hist;
+MAP ens_cbank.mb_accounting_status, TARGET ens_cbank.mb_accounting_status;
+MAP ens_cbank.mb_acct, TARGET ens_cbank.mb_acct;
+MAP ens_cbank.mb_acct_attach, TARGET ens_cbank.mb_acct_attach;
+MAP ens_cbank.mb_acct_balance, TARGET ens_cbank.mb_acct_balance;
+MAP ens_cbank.mb_acct_discount, TARGET ens_cbank.mb_acct_discount;
+MAP ens_cbank.mb_acct_hist; TARGET ens_cbank.mb_acct_hist;
+MAP ens_cbank.mb_acct_int_detail, TARGET ens_cbank.mb_acct_int_detail;
+MAP ens_cbank.mb_acct_nature_def; TARGET ens_cbank.mb_acct_nature_def;
+MAP ens_cbank.mb_acct_schedule_detail, TARGET ens_cbank.mb_acct_schedule_detail;
+MAP ens_cbank.mb_acct_settle; TARGET ens_cbank.mb_acct_settle;
+MAP ens_cbank.mb_acct_up_grade_info; TARGET ens_cbank.mb_acct_up_grade_info;
+MAP ens_cbank.mb_ad_register, TARGET ens_cbank.mb_ad_register;
+MAP ens_cbank.mb_agreement, TARGET ens_cbank.mb_agreement;
+MAP ens_cbank.mb_agreement_accord, TARGET ens_cbank.mb_agreement_accord;
+MAP ens_cbank.mb_agreement_sms, TARGET ens_cbank.mb_agreement_sms;
+MAP ens_cbank.mb_agreement_sxc, TARGET ens_cbank.mb_agreement_sxc;
+MAP ens_cbank.mb_agreement_yht; TARGET ens_cbank.mb_agreement_yht;
+MAP ens_cbank.mb_appr_letter; TARGET ens_cbank.mb_appr_letter;
+MAP ens_cbank.mb_appr_letter_sub; TARGET ens_cbank.mb_appr_letter_sub;
+MAP ens_cbank.mb_attr_value, TARGET ens_cbank.mb_attr_value;
+MAP ens_cbank.mb_batch_open_details, TARGET ens_cbank.mb_batch_open_details;
+MAP ens_cbank.mb_batch_tran, TARGET ens_cbank.mb_batch_tran;
+MAP ens_cbank.mb_batch_transfer_details, TARGET ens_cbank.mb_batch_transfer_details;
+MAP ens_cbank.mb_cdt_info, TARGET ens_cbank.mb_cdt_info;
+MAP ens_cbank.mb_certificate_type, TARGET ens_cbank.mb_certificate_type;
+MAP ens_cbank.mb_commission_register, TARGET ens_cbank.mb_commission_register;
+MAP ens_cbank.mb_debt_asset, TARGET ens_cbank.mb_debt_asset;
+MAP ens_cbank.mb_debt_asset_hist, TARGET ens_cbank.mb_debt_asset_hist;
+MAP ens_cbank.mb_debt_asset_loan, TARGET ens_cbank.mb_debt_asset_loan;
+MAP ens_cbank.mb_event_part, TARGET ens_cbank.mb_event_part;
+MAP ens_cbank.mb_event_type, TARGET ens_cbank.mb_event_type;
+MAP ens_cbank.mb_fin_detail, TARGET ens_cbank.mb_fin_detail;
+MAP ens_cbank.mb_impound_info, TARGET ens_cbank.mb_impound_info;
+MAP ens_cbank.mb_invoice, TARGET ens_cbank.mb_invoice;
+MAP ens_cbank.mb_launch; TARGET ens_cbank.mb_launch;
+MAP ens_cbank.mb_launch_detail; TARGET ens_cbank.mb_launch_detail;
+MAP ens_cbank.mb_materials_type, TARGET ens_cbank.mb_materials_type;
+MAP ens_cbank.mb_nocard_file; TARGET ens_cbank.mb_nocard_file;
+MAP ens_cbank.mb_open_close_reg, TARGET ens_cbank.mb_open_close_reg;
+MAP ens_cbank.mb_prod_define; TARGET ens_cbank.mb_prod_define;
+MAP ens_cbank.mb_prod_type, TARGET ens_cbank.mb_prod_type;
+MAP ens_cbank.mb_reason_code; TARGET ens_cbank.mb_reason_code;
+MAP ens_cbank.mb_receipt, TARGET ens_cbank.mb_receipt;
+MAP ens_cbank.mb_receipt_detail, TARGET ens_cbank.mb_receipt_detail;
+MAP ens_cbank.mb_restraints, TARGET ens_cbank.mb_restraints;
+MAP ens_cbank.mb_seal_relation, TARGET ens_cbank.mb_seal_relation;
+MAP ens_cbank.mb_stage_define, TARGET ens_cbank.mb_stage_define;
+MAP ens_cbank.mb_stage_matrix, TARGET ens_cbank.mb_stage_matrix;
+MAP ens_cbank.mb_sxc_tran_hist; TARGET ens_cbank.mb_sxc_tran_hist;
+MAP ens_cbank.mb_tda_hist, TARGET ens_cbank.mb_tda_hist;
+MAP ens_cbank.mb_tran_def, TARGET ens_cbank.mb_tran_def;
+MAP ens_cbank.mb_tran_hist, TARGET ens_cbank.mb_tran_hist;
+MAP ens_cbank.mb_transfer_contract, TARGET ens_cbank.mb_transfer_contract;
+MAP ens_cbank.mb_transfer_detail, TARGET ens_cbank.mb_transfer_detail;
+MAP ens_cbank.mb_xfc_fin, TARGET ens_cbank.mb_xfc_fin;
+MAP ens_cbank.mb_xfc_stage_define, TARGET ens_cbank.mb_xfc_stage_define;
+MAP ens_cbank.mm_interbank_busi_reg, TARGET ens_cbank.mm_interbank_busi_reg;
+MAP ens_cbank.mm_interbank_repay_detail, TARGET ens_cbank.mm_interbank_repay_detail;
+MAP ens_cbank.nx_rc_cust_list_mg, TARGET ens_cbank.nx_rc_cust_list_mg;
+MAP ens_cbank.rc_all_list, TARGET ens_cbank.rc_all_list;
+MAP ens_cbank.rc_list_category, TARGET ens_cbank.rc_list_category;
+MAP ens_cbank.rc_list_type, TARGET ens_cbank.rc_list_type;
+MAP ens_cbank.stc_acct, TARGET ens_cbank.stc_acct;
+MAP ens_cbank.stria_flow; TARGET ens_cbank.stria_flow;
+MAP ens_cbank.tb_cash_balance, TARGET ens_cbank.tb_cash_balance;
+MAP ens_cbank.tb_cash_journal, TARGET ens_cbank.tb_cash_journal;
+MAP ens_cbank.tb_cash_move, TARGET ens_cbank.tb_cash_move;
+MAP ens_cbank.tb_cash_move_detail, TARGET ens_cbank.tb_cash_move_detail;
+MAP ens_cbank.tb_trailbox, TARGET ens_cbank.tb_trailbox;
+MAP ens_cbank.tb_voucher_def, TARGET ens_cbank.tb_voucher_def;
+MAP ens_cbank.tb_voucher_info, TARGET ens_cbank.tb_voucher_info;
+
+MAP ens_cbank.fm_tran_info, TARGET ens_cbank.fm_tran_info;
+MAP ens_cbank.irl_capt_info; TARGET ens_cbank.irl_capt_info;
+MAP ens_cbank.irl_accr_info_main; TARGET ens_cbank.irl_accr_info_main;
+MAP ens_cbank.irl_int_split; TARGET ens_cbank.irl_int_split;
+```
+
+### 7.2.2 init_pd_hx_tran
+
+```bash
+specialrun
+end runtime
+extfile ./dirdat/t2
+TARGETDB LIBFILE libggjava.so SET property=dirprm/ens_pd.props
+SOURCEDEFS ./dirdef/def_hx.def OVERRIDE
+REPORTCOUNT EVERY 1 MINUTES, RATE
+GROUPTRANSOPS 10000
+MAXTRANSOPS 20000
+GETTRUNCATES
+
+MAP ens_cbank.mb_sxc_tran_hist; TARGET ens_cbank.mb_sxc_tran_hist;
+MAP ens_cbank.mb_tran_hist, TARGET ens_cbank.mb_tran_hist;
+```
+
+### 7.2.3 init_pd_gm
+
+```bash
+specialrun
+end runtime
+extfile ./dirdat/gp
+TARGETDB LIBFILE libggjava.so SET property=dirprm/ens_pd.props
+SOURCEDEFS ./dirdef/def_gm.def OVERRIDE
+REPORTCOUNT EVERY 1 MINUTES, RATE
+GROUPTRANSOPS 10000
+MAXTRANSOPS 20000
+GETTRUNCATES
+
+MAP tellerdb.teller9.sso_rolebasic, TARGET ens_cbank.sso_rolebasic;
+MAP tellerdb.teller9.sso_userrole, TARGET ens_cbank.sso_userrole;
+MAP tellerdb.teller9.sso_roleaccessresource, TARGET ens_cbank.sso_roleaccessresource;
+MAP tellerdb.teller9.sso_resourcebasic, TARGET ens_cbank.sso_resourcebasic;
+MAP tellerdb.teller9.tl9_resource_mapping, TARGET ens_cbank.tl9_resource_mapping;
+MAP tellerdb.teller9.tl9_business_journala_extends, TARGET ens_cbank.tl9_business_journala_extends;
+MAP tellerdb.teller9.tl9_business_journala, TARGET ens_cbank.tl9_business_journala;
+MAP tellerdb.teller9.tl9_unprint_tran, TARGET ens_cbank.tl9_unprint_tran;
+```
+
+### 7.2.4 init_pd_tmp
+
+```bash
+specialrun
+end runtime
+extfile ./dirdat/ti
+TARGETDB LIBFILE libggjava.so SET property=dirprm/ens_pd.props
+SOURCEDEFS ./dirdef/def_hx.def OVERRIDE
+REPORTCOUNT EVERY 1 MINUTES, RATE
+GROUPTRANSOPS 10000
+MAXTRANSOPS 20000
+GETTRUNCATES
+
+MAP ens_cbank.mb_acct_balance; TARGET ens_cbank.mb_acct_balance;
+```
+

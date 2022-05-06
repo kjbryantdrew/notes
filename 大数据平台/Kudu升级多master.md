@@ -6,3 +6,9 @@
 > 4. 升级之前，确定单master指定了`--master_addresses`，因为后续需要将该配置升级到多master，如果没指定，需要在升级之前指定，可以通过`kudu master get_flags`进行检查
 > 5. kudu apache官方文档建议为kudu节点配置DNS别名，本环境有hosts配置，无需特殊处理那个的
 > 6. 如果有impala集成的kudu表，需要更新对应的hive元数据 `hive metastore`
+
+```sql
+# 通过impala接口修改kudu master
+alter table als_to_cms.cr_xd set TBLPROPERTIES('kudu.master_addresses' = 'big-data01:7151,big-data02:7151,big-data03:7151');
+```
+

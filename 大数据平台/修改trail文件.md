@@ -25,4 +25,7 @@ GGSCI (node43) 30> start reens NOFILTERDUPTRANSACTIONS
 
 Sending START request to MANAGER ...
 REPLICAT REENS starting
+
+# 日志过老
+alter ext1 begin now
 ```
