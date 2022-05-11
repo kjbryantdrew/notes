@@ -1,4 +1,4 @@
-1. 检查数据库示例是否启动
+### 检查数据库示例是否启动
 
 ```sql
 SQL> select status from v$instance;
@@ -8,7 +8,7 @@ STATUS
 OPEN
 ```
 
-2. 监听异常
+### 监听异常
 
 ```sql
 # 主要体现在启动监听的时候提示The listener supports no services
@@ -24,7 +24,7 @@ SQL> alter system register;
 # 但方法二在本地实测没用
 ```
 
-3. 创建表空间
+### 创建表空间
 
 ```sql
 # 查看表空间
@@ -35,7 +35,7 @@ SQL> create tablespace sn datafile '/home/oracle/app/oracle/oradata/orcl/sn.dbf'
 SQL> alter database datafile '/home/oracle/app/oracle/oradata/orcl/sn.dbf' resize 5000m;
 ```
 
-4. 修改用户表空间
+### 修改用户表空间
 
 ```sql
 # 查看当前用户的表空间
@@ -47,26 +47,26 @@ SQL> alter user CBS default tablespace sn;
 User altered.
 ```
 
-5. 新增用户
+### 新增用户
 
 ```sql
 create user cbs identified by cbs default tablespace cbs
 grant connect, resource to cbs
 ```
 
-6. 查看用户下的所有表
+### 查看用户下的所有表
 
 ```sql
 select OWNER, TABLE_NAME, TABLESPACE_NAME from all_tables where OWNER='CBS';
 ```
 
-7. Oracle查看DDL语句
+### Oracle查看DDL语句
 
 ```sql
 SELECT DBMS_METADATA.GET_DDL('TABLE','DD_MST','CBS') FROM DUAL;
 ```
 
-8. 删除用户
+### 删除用户
 
 ```sql
 # 将用户的数据库数据一并删除，并没有删除相应的表空间
@@ -85,14 +85,14 @@ ALTER DATABASE DATAFILE "/home/oracle/app/oracle/oradata/orcl/users01.dbf" RESIZ
 drop tablespace user including contents and datafiles cascade constraint;
 ```
 
-9. Oracle强制断开连接
+### Oracle强制断开连接
 
 ```sql
 select username,sid,serial# from v$session where username='CBS';
 alter system kill session '268,12859' # SID,SERIAL#
 ```
 
-10. Oracle资源繁忙
+### Oracle资源繁忙
 
 ```sql
 # 查看什么进程占用了锁
@@ -105,7 +105,7 @@ alter system kill session '137,9064';
 commit;
 ```
 
-11. Oracle清理undo log
+### Oracle清理undo log
 
 ```sql
 # 创建一个新的undo tablespace
@@ -116,7 +116,7 @@ alter system set undo_tablespace=undotbs2 scope=both;
 drop tablespace UNDOTBS1 including contents and datafiles;
 ```
 
-12. Oracle数据库中删除了表空间物理文件XXX.ora后导致用drop tablespace删除表空间失败
+### Oracle数据库中删除了表空间物理文件XXX.ora后导致用drop tablespace删除表空间失败
 
 ```sql
 alter database datafile '/home/oracle/jgbs/TBS_DATA_CDK_2_01.dbf' offline drop;

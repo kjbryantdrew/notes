@@ -39,6 +39,9 @@ Transaction isolation: TRANSACTION_REPEATABLE_READ
 
 No rows affected (0.429 seconds)
 0: jdbc:hive2://big-data04:10001>
+
+# 如果是分区表。需要添加分区
+alter table preset.mb_acct_balance add partition (day_='2022-05-09')
 ```
 
 7、刷新impala
